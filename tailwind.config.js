@@ -13,8 +13,8 @@ export default {
           border: "rgba(255,255,255,0.06)",
         },
         accent: {
-          DEFAULT: "#5B6DFF",
-          hover: "#4A5AEF",
+          DEFAULT: "#00F0FF",
+          hover: "#00D0DD",
         },
         muted: "#8A8A93",
       },
