@@ -10,13 +10,13 @@ import { Toast } from "./components/Toast";
 
 function App() {
   const activeView = useAppStore((s) => s.activeView);
-  const loadGames = useAppStore((s) => s.loadGames);
+  const initLibrary = useAppStore((s) => s.initLibrary);
 
   useTauriEvents();
 
   useEffect(() => {
-    loadGames();
-  }, [loadGames]);
+    initLibrary();
+  }, [initLibrary]);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-base text-white overflow-hidden">

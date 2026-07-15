@@ -20,6 +20,7 @@ interface AppStore {
   toasts: Toast[];
 
   loadGames: () => Promise<void>;
+  initLibrary: () => Promise<void>;
   selectGame: (id: number | null) => void;
   setActiveView: (view: ViewName) => void;
   setSourceFilter: (source: GameSource | null) => void;
@@ -84,6 +85,19 @@ export const useAppStore = create<AppStore>((set, get) => ({
       set({ runningGameId: id });
     } catch (e) {
       get().addToast(`Failed to launch game: ${e}`, "error");
+    }
+  },
+
+  initLibrary: async() => {
+    set({ isScanning: true });
+    try{
+      await tauri.scanGames();
+      await tauri.fetchAllMetadata();
+      await get().loadGames();
+    } catch(e){
+      get().addToast(`Startup sync failed: ${e}`, "error");
+    } finally {
+      set({ isScanning: false });
     }
   },
 
