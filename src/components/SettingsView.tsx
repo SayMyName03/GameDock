@@ -33,7 +33,13 @@ export function SettingsView() {
   };
 
   const handleAddGame = async () => {
-    const path = await tauri.pickExeFile();
+    let path: string | null = null;
+    try {
+      path = await tauri.pickExeFile();
+    } catch (e) {
+      addToast(`Failed to open file picker: ${e}`, "error");
+      return;
+    }
     if (path) {
       addGame(path);
     }
