@@ -2,6 +2,7 @@ import { useAppStore } from "../store/useAppStore";
 import { CoverImage } from "./CoverImage";
 import { PlayButton } from "./PlayButton";
 import { formatPlayTime, formatLastPlayed } from "../lib/format";
+import { Loader2 } from "lucide-react";
 
 export function DetailPanel() {
   const selectedGameId = useAppStore((s) => s.selectedGameId);
@@ -9,6 +10,7 @@ export function DetailPanel() {
   const games = useAppStore((s) => s.games);
   const removeGame = useAppStore((s) => s.removeGame);
   const refreshMetadata = useAppStore((s) => s.refreshMetadata);
+  const isRefreshingMetaData = useAppStore((s) => s.isRefreshingMetaData);
 
   const game = games.find((g) => g.id === selectedGameId);
 
@@ -58,11 +60,22 @@ export function DetailPanel() {
             <PlayButton gameId={game.id} />
             <button
               onClick={() => refreshMetadata(game.id)}
-              className="w-full py-2.5 bg-base border border-base-border rounded-lg
-                text-sm text-white/70 hover:text-white hover:border-white/15
-                transition-colors"
+              disabled={isRefreshingMetaData}
+              className={`w-full py-2.5 rounded-lg border text-sm
+              flex items-center justify-center gap-2
+              transition-colors${isRefreshingMetaData ? "bg-base border-base-border text-white/50 cursor-not-allowed"
+                      : "bg-base border-base-border text-white/70 hover:text-white hover:border-white/15"
+                      }
+                  `}
             >
-              Refresh Metadata
+              {isRefreshingMetaData ? (
+                <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Refreshing...
+                </>
+              ): (
+                "Refresh Metadata"
+              )}
             </button>
             {game.source === "manual" && (
               <button

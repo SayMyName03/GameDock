@@ -17,6 +17,7 @@ interface AppStore {
   searchQuery: string;
   sortBy: SortOption;
   isScanning: boolean;
+  isRefreshingMetaData: boolean;
   toasts: Toast[];
 
   loadGames: () => Promise<void>;
@@ -49,6 +50,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   searchQuery: "",
   sortBy: "recent",
   isScanning: false,
+  isRefreshingMetaData: false,
   toasts: [],
 
   loadGames: async () => {
@@ -136,11 +138,16 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   refreshMetadata: async (id) => {
+    set({ isRefreshingMetaData: true });
+
     try {
       await tauri.fetchMetadata(id);
       await get().loadGames();
+      get().addToast("Metadata is already upto date!", "success");
     } catch (e) {
       get().addToast(`Metadata fetch failed: ${e}`, "error");
+    } finally{
+      set({ isRefreshingMetaData:false })
     }
   },
 
