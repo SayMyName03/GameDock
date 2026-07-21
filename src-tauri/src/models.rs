@@ -2,6 +2,36 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct PlatformInfo {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+}
+
+impl PlatformInfo {
+    pub fn all() -> Vec<PlatformInfo> {
+        vec![
+            PlatformInfo {
+                id: "steam".to_string(),
+                name: "Steam".to_string(),
+                description: "Scan for installed Steam games".to_string(),
+            },
+            PlatformInfo {
+                id: "epic".to_string(),
+                name: "Epic Games".to_string(),
+                description: "Scan for installed Epic Games titles".to_string(),
+            },
+            PlatformInfo {
+                id: "manual".to_string(),
+                name: "Manual".to_string(),
+                description: "Manually add games by selecting .exe files".to_string(),
+            },
+        ]
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GameDto {
     pub id: i64,
     pub title: String,

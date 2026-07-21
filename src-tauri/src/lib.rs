@@ -27,6 +27,10 @@ pub fn run() {
             commands::set_igdb_credentials,
             commands::has_igdb_credentials,
             commands::read_cover_image,
+            commands::get_platforms,
+            commands::get_enabled_platforms,
+            commands::set_enabled_platforms,
+            commands::is_setup_done,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

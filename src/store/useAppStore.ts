@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { GameDto, GameSource, SortOption, ViewName } from "../types/game";
+import type { GameDto, GameSource, SortOption, ViewName, PlatformInfo } from "../types/game";
 import * as tauri from "../lib/tauri";
 
 interface Toast {
@@ -20,6 +20,10 @@ interface AppStore {
   isRefreshingMetaData: boolean;
   toasts: Toast[];
 
+  setupComplete: boolean;
+  availablePlatforms: PlatformInfo[];
+  enabledPlatforms: string[];
+
   loadGames: () => Promise<void>;
   initLibrary: () => Promise<void>;
   selectGame: (id: number | null) => void;
@@ -37,6 +41,10 @@ interface AppStore {
   setRunningGame: (id: number | null) => void;
   addToast: (message: string, type?: "error" | "success") => void;
   removeToast: (id: number) => void;
+
+  loadPlatforms: () => Promise<void>;
+  setEnabledPlatforms: (platforms: string[]) => Promise<void>;
+  completeSetup: () => Promise<void>;
 }
 
 let toastIdCounter = 0;
@@ -52,6 +60,52 @@ export const useAppStore = create<AppStore>((set, get) => ({
   isScanning: false,
   isRefreshingMetaData: false,
   toasts: [],
+
+  setupComplete: false,
+  availablePlatforms: [],
+  enabledPlatforms: [],
+
+  loadPlatforms: async () => {
+    try {
+      const [platforms, enabled, done] = await Promise.all([
+        tauri.getPlatforms(),
+        tauri.getEnabledPlatforms(),
+        tauri.isSetupDone(),
+      ]);
+      set({
+        availablePlatforms: platforms,
+        enabledPlatforms: enabled,
+        setupComplete: done,
+      });
+    } catch (e) {
+      get().addToast(`Failed to load platforms: ${e}`, "error");
+    }
+  },
+
+  setEnabledPlatforms: async (platforms) => {
+    try {
+      await tauri.setEnabledPlatforms(platforms);
+      set({ enabledPlatforms: platforms });
+      get().addToast("Platform settings saved", "success");
+    } catch (e) {
+      get().addToast(`Failed to save platforms: ${e}`, "error");
+    }
+  },
+
+  completeSetup: async () => {
+    const { enabledPlatforms } = get();
+    try {
+      await tauri.setEnabledPlatforms(enabledPlatforms);
+      set({ setupComplete: true, isScanning: true });
+      await tauri.scanGames();
+      await tauri.fetchAllMetadata();
+      await get().loadGames();
+    } catch (e) {
+      get().addToast(`Setup failed: ${e}`, "error");
+    } finally {
+      set({ isScanning: false });
+    }
+  },
 
   loadGames: async () => {
     try {

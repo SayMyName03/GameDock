@@ -2,24 +2,44 @@ use crate::config;
 use crate::db::{self, Db};
 use crate::igdb;
 use crate::launcher;
-use crate::models::{GameDto, PlaySessionDto};
+use crate::models::{GameDto, PlatformInfo, PlaySessionDto};
 use crate::scanner;
 use tauri::{AppHandle, Emitter, State};
 
 #[tauri::command]
 pub async fn scan_games(db: State<'_, Db>, app: AppHandle) -> Result<Vec<GameDto>, String> {
-    // Filesystem enumeration of Steam/Epic manifests can take seconds on first
-    // launch — run it off the async runtime worker so other IPC stays responsive.
+    let enabled = config::get_enabled_platforms()?;
     let db = db.0.clone();
     let games = tauri::async_runtime::spawn_blocking(move || {
         let conn = db.lock().map_err(|e| e.to_string())?;
-        scanner::scan_all(&conn)
+        scanner::scan_all(&conn, &enabled)
     })
     .await
     .map_err(|e| format!("scan task join: {e}"))??;
 
     let _ = app.emit("scan:complete", serde_json::json!({ "count": games.len() }));
     Ok(games.iter().map(|g| g.to_dto()).collect())
+}
+
+#[tauri::command]
+pub fn get_platforms() -> Result<Vec<PlatformInfo>, String> {
+    Ok(PlatformInfo::all())
+}
+
+#[tauri::command]
+pub fn get_enabled_platforms() -> Result<Vec<String>, String> {
+    config::get_enabled_platforms()
+}
+
+#[tauri::command]
+pub fn set_enabled_platforms(platforms: Vec<String>) -> Result<(), String> {
+    config::set_enabled_platforms(platforms)?;
+    config::mark_setup_done()
+}
+
+#[tauri::command]
+pub fn is_setup_done() -> Result<bool, String> {
+    config::is_setup_done()
 }
 
 #[tauri::command]

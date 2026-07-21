@@ -2,6 +2,12 @@ export type GameSource = "steam" | "epic" | "manual";
 export type SortOption = "recent" | "alphabetical" | "playtime";
 export type ViewName = "library" | "favorites" | "settings";
 
+export interface PlatformInfo {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface GameDto {
   id: number;
   title: string;

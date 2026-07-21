@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
-import type { GameDto, PlaySessionDto } from "../types/game";
+import type { GameDto, PlaySessionDto, PlatformInfo } from "../types/game";
 
 export async function scanGames(): Promise<GameDto[]> {
   return invoke<GameDto[]>("scan_games");
@@ -106,4 +106,20 @@ export function onScanComplete(callback: (count: number) => void): Promise<Unlis
   return listen<{ count: number }>("scan:complete", (event) => {
     callback(event.payload.count);
   });
+}
+
+export async function getPlatforms(): Promise<PlatformInfo[]> {
+  return invoke<PlatformInfo[]>("get_platforms");
+}
+
+export async function getEnabledPlatforms(): Promise<string[]> {
+  return invoke<string[]>("get_enabled_platforms");
+}
+
+export async function setEnabledPlatforms(platforms: string[]): Promise<void> {
+  return invoke<void>("set_enabled_platforms", { platforms });
+}
+
+export async function isSetupDone(): Promise<boolean> {
+  return invoke<boolean>("is_setup_done");
 }
